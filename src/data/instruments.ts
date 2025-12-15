@@ -1,0 +1,53 @@
+import { Instrument } from "@/components/dashboard/InstrumentSearch";
+
+export const instruments: Instrument[] = [
+  // US Stocks
+  { symbol: "AAPL", name: "Apple Inc.", category: "us_stocks", price: 195.89, change: 2.45, changePercent: 1.27 },
+  { symbol: "MSFT", name: "Microsoft Corporation", category: "us_stocks", price: 378.91, change: 4.12, changePercent: 1.10 },
+  { symbol: "GOOGL", name: "Alphabet Inc.", category: "us_stocks", price: 141.80, change: 1.20, changePercent: 0.85 },
+  { symbol: "AMZN", name: "Amazon.com Inc.", category: "us_stocks", price: 178.25, change: 3.15, changePercent: 1.80 },
+  { symbol: "TSLA", name: "Tesla Inc.", category: "us_stocks", price: 248.50, change: -5.30, changePercent: -2.09 },
+  { symbol: "NVDA", name: "NVIDIA Corporation", category: "us_stocks", price: 495.22, change: 12.50, changePercent: 2.59 },
+  { symbol: "META", name: "Meta Platforms Inc.", category: "us_stocks", price: 505.95, change: 8.20, changePercent: 1.65 },
+  { symbol: "JPM", name: "JPMorgan Chase & Co.", category: "us_stocks", price: 195.48, change: 1.85, changePercent: 0.96 },
+  { symbol: "V", name: "Visa Inc.", category: "us_stocks", price: 279.35, change: 2.10, changePercent: 0.76 },
+  { symbol: "WMT", name: "Walmart Inc.", category: "us_stocks", price: 165.23, change: -0.45, changePercent: -0.27 },
+  { symbol: "JNJ", name: "Johnson & Johnson", category: "us_stocks", price: 156.78, change: 0.92, changePercent: 0.59 },
+  { symbol: "PG", name: "Procter & Gamble Co.", category: "us_stocks", price: 158.45, change: 1.15, changePercent: 0.73 },
+  { symbol: "MA", name: "Mastercard Inc.", category: "us_stocks", price: 458.90, change: 5.40, changePercent: 1.19 },
+  { symbol: "HD", name: "Home Depot Inc.", category: "us_stocks", price: 345.67, change: -2.30, changePercent: -0.66 },
+  { symbol: "BAC", name: "Bank of America Corp.", category: "us_stocks", price: 33.45, change: 0.28, changePercent: 0.84 },
+  { symbol: "DIS", name: "Walt Disney Co.", category: "us_stocks", price: 112.34, change: 1.56, changePercent: 1.41 },
+  { symbol: "NFLX", name: "Netflix Inc.", category: "us_stocks", price: 478.90, change: 8.75, changePercent: 1.86 },
+  { symbol: "AMD", name: "Advanced Micro Devices", category: "us_stocks", price: 145.67, change: 3.45, changePercent: 2.42 },
+  { symbol: "CRM", name: "Salesforce Inc.", category: "us_stocks", price: 265.40, change: 4.20, changePercent: 1.61 },
+  { symbol: "INTC", name: "Intel Corporation", category: "us_stocks", price: 45.23, change: -0.78, changePercent: -1.70 },
+
+  // Cryptocurrency
+  { symbol: "BTC/USD", name: "Bitcoin", category: "crypto", price: 43256.00, change: -892.00, changePercent: -2.02 },
+  { symbol: "ETH/USD", name: "Ethereum", category: "crypto", price: 2285.40, change: 45.20, changePercent: 2.02 },
+  { symbol: "BNB/USD", name: "Binance Coin", category: "crypto", price: 312.45, change: 5.80, changePercent: 1.89 },
+  { symbol: "XRP/USD", name: "Ripple", category: "crypto", price: 0.6234, change: 0.0123, changePercent: 2.01 },
+  { symbol: "SOL/USD", name: "Solana", category: "crypto", price: 98.45, change: 4.20, changePercent: 4.46 },
+  { symbol: "ADA/USD", name: "Cardano", category: "crypto", price: 0.5890, change: -0.0156, changePercent: -2.58 },
+  { symbol: "DOGE/USD", name: "Dogecoin", category: "crypto", price: 0.0892, change: 0.0034, changePercent: 3.96 },
+  { symbol: "DOT/USD", name: "Polkadot", category: "crypto", price: 7.45, change: 0.18, changePercent: 2.48 },
+  { symbol: "AVAX/USD", name: "Avalanche", category: "crypto", price: 35.67, change: 1.23, changePercent: 3.57 },
+  { symbol: "LINK/USD", name: "Chainlink", category: "crypto", price: 14.89, change: 0.45, changePercent: 3.12 },
+  { symbol: "MATIC/USD", name: "Polygon", category: "crypto", price: 0.8934, change: 0.0234, changePercent: 2.69 },
+  { symbol: "LTC/USD", name: "Litecoin", category: "crypto", price: 72.34, change: -1.45, changePercent: -1.97 },
+
+  // Forex / Currency Pairs
+  { symbol: "EUR/USD", name: "Euro / US Dollar", category: "forex", price: 1.0892, change: 0.0023, changePercent: 0.21 },
+  { symbol: "GBP/USD", name: "British Pound / US Dollar", category: "forex", price: 1.2654, change: -0.0045, changePercent: -0.35 },
+  { symbol: "USD/JPY", name: "US Dollar / Japanese Yen", category: "forex", price: 149.82, change: 0.56, changePercent: 0.38 },
+  { symbol: "USD/CHF", name: "US Dollar / Swiss Franc", category: "forex", price: 0.8765, change: 0.0012, changePercent: 0.14 },
+  { symbol: "AUD/USD", name: "Australian Dollar / US Dollar", category: "forex", price: 0.6534, change: -0.0028, changePercent: -0.43 },
+  { symbol: "USD/CAD", name: "US Dollar / Canadian Dollar", category: "forex", price: 1.3567, change: 0.0034, changePercent: 0.25 },
+  { symbol: "NZD/USD", name: "New Zealand Dollar / US Dollar", category: "forex", price: 0.6123, change: 0.0015, changePercent: 0.25 },
+  { symbol: "EUR/GBP", name: "Euro / British Pound", category: "forex", price: 0.8612, change: -0.0018, changePercent: -0.21 },
+  { symbol: "EUR/JPY", name: "Euro / Japanese Yen", category: "forex", price: 163.25, change: 0.78, changePercent: 0.48 },
+  { symbol: "GBP/JPY", name: "British Pound / Japanese Yen", category: "forex", price: 189.56, change: 0.92, changePercent: 0.49 },
+  { symbol: "XAU/USD", name: "Gold / US Dollar", category: "forex", price: 2024.50, change: 12.30, changePercent: 0.61 },
+  { symbol: "XAG/USD", name: "Silver / US Dollar", category: "forex", price: 23.45, change: 0.34, changePercent: 1.47 },
+];
