@@ -1,129 +1,94 @@
+import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { SignalsTable } from "@/components/dashboard/SignalsTable";
+import { SignalsTable, SignalRowData } from "@/components/dashboard/SignalsTable";
 import { StatsCard, SignalsSummary } from "@/components/dashboard/StatsCard";
-import { Activity, TrendingUp, Clock, Zap } from "lucide-react";
+import { Activity, TrendingUp, Zap } from "lucide-react";
 import { SignalType } from "@/components/dashboard/SignalBadge";
 
-// Mock data generator
-const generateSignals = (): { timeframe: string; signal: SignalType }[] => {
-  const timeframes = ["1m", "5m", "15m", "1h", "4h", "1d"];
+// Available symbols for selection
+const availableSymbols = [
+  { symbol: "EURUSD", name: "Euro / US Dollar", price: 1.0892, change: 0.0023, changePercent: 0.21 },
+  { symbol: "GBPUSD", name: "British Pound / US Dollar", price: 1.2654, change: -0.0045, changePercent: -0.35 },
+  { symbol: "USDJPY", name: "US Dollar / Japanese Yen", price: 149.82, change: 0.56, changePercent: 0.38 },
+  { symbol: "XAUUSD", name: "Gold / US Dollar", price: 2024.50, change: 12.30, changePercent: 0.61 },
+  { symbol: "BTCUSD", name: "Bitcoin / US Dollar", price: 43256.00, change: -892.00, changePercent: -2.02 },
+  { symbol: "ETHUSD", name: "Ethereum / US Dollar", price: 2285.40, change: 45.20, changePercent: 2.02 },
+  { symbol: "AAPL", name: "Apple Inc.", price: 195.89, change: 2.45, changePercent: 1.27 },
+  { symbol: "TSLA", name: "Tesla Inc.", price: 248.50, change: -5.30, changePercent: -2.09 },
+  { symbol: "GOOGL", name: "Alphabet Inc.", price: 141.80, change: 1.20, changePercent: 0.85 },
+  { symbol: "AMZN", name: "Amazon.com Inc.", price: 178.25, change: 3.15, changePercent: 1.80 },
+];
+
+// Generate random signal
+const getRandomSignal = (): SignalType => {
   const signals: SignalType[] = ["buy", "sell", "neutral"];
-  return timeframes.map(tf => ({
-    timeframe: tf,
-    signal: signals[Math.floor(Math.random() * signals.length)]
-  }));
+  return signals[Math.floor(Math.random() * signals.length)];
 };
 
-const mockData = [
+// Initial mock data
+const initialData: SignalRowData[] = [
   {
     id: "1",
     symbol: "EURUSD",
     name: "Euro / US Dollar",
+    indicator: "RSI",
+    timeframe: "1h",
+    signal: getRandomSignal(),
     lastPrice: 1.0892,
     change: 0.0023,
     changePercent: 0.21,
-    indicators: {
-      rsi: generateSignals(),
-      macd: generateSignals(),
-      ema: generateSignals(),
-      bollinger: generateSignals(),
-      stochastic: generateSignals(),
-    },
   },
   {
     id: "2",
-    symbol: "GBPUSD",
-    name: "British Pound / US Dollar",
-    lastPrice: 1.2654,
-    change: -0.0045,
-    changePercent: -0.35,
-    indicators: {
-      rsi: generateSignals(),
-      macd: generateSignals(),
-      ema: generateSignals(),
-      bollinger: generateSignals(),
-      stochastic: generateSignals(),
-    },
-  },
-  {
-    id: "3",
-    symbol: "USDJPY",
-    name: "US Dollar / Japanese Yen",
-    lastPrice: 149.82,
-    change: 0.56,
-    changePercent: 0.38,
-    indicators: {
-      rsi: generateSignals(),
-      macd: generateSignals(),
-      ema: generateSignals(),
-      bollinger: generateSignals(),
-      stochastic: generateSignals(),
-    },
-  },
-  {
-    id: "4",
-    symbol: "XAUUSD",
-    name: "Gold / US Dollar",
-    lastPrice: 2024.50,
-    change: 12.30,
-    changePercent: 0.61,
-    indicators: {
-      rsi: generateSignals(),
-      macd: generateSignals(),
-      ema: generateSignals(),
-      bollinger: generateSignals(),
-      stochastic: generateSignals(),
-    },
-  },
-  {
-    id: "5",
     symbol: "BTCUSD",
     name: "Bitcoin / US Dollar",
+    indicator: "MACD",
+    timeframe: "4h",
+    signal: getRandomSignal(),
     lastPrice: 43256.00,
     change: -892.00,
     changePercent: -2.02,
-    indicators: {
-      rsi: generateSignals(),
-      macd: generateSignals(),
-      ema: generateSignals(),
-      bollinger: generateSignals(),
-      stochastic: generateSignals(),
-    },
   },
   {
-    id: "6",
-    symbol: "ETHUSD",
-    name: "Ethereum / US Dollar",
-    lastPrice: 2285.40,
-    change: 45.20,
-    changePercent: 2.02,
-    indicators: {
-      rsi: generateSignals(),
-      macd: generateSignals(),
-      ema: generateSignals(),
-      bollinger: generateSignals(),
-      stochastic: generateSignals(),
-    },
+    id: "3",
+    symbol: "XAUUSD",
+    name: "Gold / US Dollar",
+    indicator: "Bollinger",
+    timeframe: "1d",
+    signal: getRandomSignal(),
+    lastPrice: 2024.50,
+    change: 12.30,
+    changePercent: 0.61,
+  },
+  {
+    id: "4",
+    symbol: "EURUSD",
+    name: "Euro / US Dollar",
+    indicator: "EMA",
+    timeframe: "15m",
+    signal: getRandomSignal(),
+    lastPrice: 1.0892,
+    change: 0.0023,
+    changePercent: 0.21,
   },
 ];
 
-// Calculate signal counts
-const countSignals = () => {
-  let buy = 0, sell = 0, neutral = 0;
-  mockData.forEach(row => {
-    Object.values(row.indicators).forEach(indicator => {
-      indicator.forEach(s => {
-        if (s.signal === "buy") buy++;
-        else if (s.signal === "sell") sell++;
-        else neutral++;
-      });
-    });
-  });
-  return { buy, sell, neutral };
-};
-
 const DashboardPage = () => {
-  const signalCounts = countSignals();
+  const [tableData, setTableData] = useState<SignalRowData[]>(initialData);
+
+  // Calculate signal counts
+  const signalCounts = tableData.reduce(
+    (acc, row) => {
+      if (row.signal === "buy") acc.buy++;
+      else if (row.signal === "sell") acc.sell++;
+      else acc.neutral++;
+      return acc;
+    },
+    { buy: 0, sell: 0, neutral: 0 }
+  );
+
+  // Get unique indicators count
+  const uniqueIndicators = new Set(tableData.map((row) => row.indicator)).size;
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,22 +101,22 @@ const DashboardPage = () => {
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
-            title="Active Instruments"
-            value={mockData.length}
-            subtitle="Forex & Crypto"
+            title="Active Entries"
+            value={tableData.length}
+            subtitle="Signal configurations"
             icon={<Activity className="h-5 w-5" />}
           />
           <StatsCard
-            title="Strong Buy Signals"
+            title="Buy Signals"
             value={signalCounts.buy}
-            subtitle="Across all timeframes"
+            subtitle="Active buy recommendations"
             trend="up"
             icon={<TrendingUp className="h-5 w-5" />}
           />
           <StatsCard
-            title="Indicators Active"
-            value={5}
-            subtitle="RSI, MACD, EMA, BB, Stoch"
+            title="Unique Indicators"
+            value={uniqueIndicators}
+            subtitle="In use across entries"
             icon={<Zap className="h-5 w-5" />}
           />
           <SignalsSummary
@@ -162,7 +127,11 @@ const DashboardPage = () => {
         </div>
 
         {/* Signals Table */}
-        <SignalsTable data={mockData} />
+        <SignalsTable 
+          data={tableData} 
+          onDataChange={setTableData}
+          availableSymbols={availableSymbols}
+        />
       </main>
     </div>
   );
