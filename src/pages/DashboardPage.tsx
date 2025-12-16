@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { SignalsTable, SignalRowData, TimeframeSignal } from "@/components/dashboard/SignalsTable";
+import { SignalsTable, SignalRowData, TimeframeSignal, AccuracyResult } from "@/components/dashboard/SignalsTable";
 import { StatsCard, SignalsSummary } from "@/components/dashboard/StatsCard";
 import { Activity, TrendingUp, Zap } from "lucide-react";
 import { SignalType } from "@/components/dashboard/SignalBadge";
 import { instruments } from "@/data/instruments";
 import { DEFAULT_TIMEFRAMES } from "@/components/dashboard/TimeframeSelector";
+import { getDefaultParams } from "@/components/dashboard/IndicatorParams";
 
 // Generate random signal
 const getRandomSignal = (): SignalType => {
@@ -17,6 +18,17 @@ const generateTimeframeSignals = (timeframes: string[] = DEFAULT_TIMEFRAMES): Ti
   return timeframes.map((tf) => ({ timeframe: tf, signal: getRandomSignal() }));
 };
 
+const generateAccuracyHistory = (): AccuracyResult[] => {
+  const results: AccuracyResult[] = [];
+  for (let i = 0; i < 10; i++) {
+    results.push({
+      profit: Math.random() > 0.4 ? Math.random() * 5 : -Math.random() * 3,
+      signal: Math.random() > 0.5 ? "buy" : "sell",
+    });
+  }
+  return results;
+};
+
 // Initial mock data
 const initialData: SignalRowData[] = [
   {
@@ -25,10 +37,12 @@ const initialData: SignalRowData[] = [
     name: "Apple Inc.",
     category: "us_stocks",
     indicator: "RSI",
+    indicatorParams: getDefaultParams("RSI"),
     timeframes: generateTimeframeSignals(),
     lastPrice: 195.89,
     change: 2.45,
     changePercent: 1.27,
+    accuracyHistory: generateAccuracyHistory(),
   },
   {
     id: "2",
@@ -36,10 +50,12 @@ const initialData: SignalRowData[] = [
     name: "Bitcoin",
     category: "crypto",
     indicator: "MACD",
+    indicatorParams: getDefaultParams("MACD"),
     timeframes: generateTimeframeSignals(),
     lastPrice: 43256.00,
     change: -892.00,
     changePercent: -2.02,
+    accuracyHistory: generateAccuracyHistory(),
   },
   {
     id: "3",
@@ -47,10 +63,12 @@ const initialData: SignalRowData[] = [
     name: "Euro / US Dollar",
     category: "forex",
     indicator: "Bollinger",
+    indicatorParams: getDefaultParams("Bollinger"),
     timeframes: generateTimeframeSignals(),
     lastPrice: 1.0892,
     change: 0.0023,
     changePercent: 0.21,
+    accuracyHistory: generateAccuracyHistory(),
   },
   {
     id: "4",
@@ -58,10 +76,12 @@ const initialData: SignalRowData[] = [
     name: "Tesla Inc.",
     category: "us_stocks",
     indicator: "EMA",
+    indicatorParams: getDefaultParams("EMA"),
     timeframes: generateTimeframeSignals(),
     lastPrice: 248.50,
     change: -5.30,
     changePercent: -2.09,
+    accuracyHistory: generateAccuracyHistory(),
   },
   {
     id: "5",
@@ -69,10 +89,12 @@ const initialData: SignalRowData[] = [
     name: "Ethereum",
     category: "crypto",
     indicator: "Stochastic",
+    indicatorParams: getDefaultParams("Stochastic"),
     timeframes: generateTimeframeSignals(),
     lastPrice: 2285.40,
     change: 45.20,
     changePercent: 2.02,
+    accuracyHistory: generateAccuracyHistory(),
   },
 ];
 
