@@ -44,5 +44,5 @@ export const TimeframeSelector = ({ value, onChange, excludeTimeframes = [] }: T
   );
 };
 
-export const DEFAULT_TIMEFRAMES = ["1m", "5m", "15m", "30m", "1h", "1d"];
+export const DEFAULT_TIMEFRAMES = ["5m", "15m", "30m", "1h", "1d"];
 export { ALL_TIMEFRAMES };
