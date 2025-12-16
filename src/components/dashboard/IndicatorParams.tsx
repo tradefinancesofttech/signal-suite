@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,6 +37,11 @@ export const getDefaultParams = (indicator: string): IndicatorParamsData => {
 
 export const IndicatorParams = ({ indicator, params, onChange }: IndicatorParamsProps) => {
   const [localParams, setLocalParams] = useState<IndicatorParamsData>(params);
+
+  // Sync local state when params prop changes (e.g., when indicator changes)
+  useEffect(() => {
+    setLocalParams(params);
+  }, [params, indicator]);
 
   const handleChange = (key: string, value: string) => {
     const numValue = parseFloat(value);
