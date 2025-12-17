@@ -57,6 +57,49 @@
     --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
   }
 
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 173 80% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 35%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 173 80% 40%;
+
+    --buy: 142 71% 35%;
+    --sell: 0 72% 51%;
+    --neutral: 215 16% 47%;
+
+    --shadow-glow: 0 0 20px hsl(173 80% 40% / 0.2);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.08);
+  }
+
   .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
