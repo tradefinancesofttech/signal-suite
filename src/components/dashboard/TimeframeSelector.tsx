@@ -13,12 +13,15 @@ interface TimeframeSelectorProps {
 }
 
 const ALL_TIMEFRAMES = [
-  { value: "30s", label: "30s" },
   { value: "1m", label: "1m" },
+  { value: "3m", label: "3m" },
   { value: "5m", label: "5m" },
+  { value: "10m", label: "10m" },
   { value: "15m", label: "15m" },
   { value: "30m", label: "30m" },
   { value: "1h", label: "1h" },
+  { value: "2h", label: "2h" },
+  { value: "3h", label: "3h" },
   { value: "4h", label: "4h" },
   { value: "1d", label: "1d" },
 ];
@@ -44,5 +47,5 @@ export const TimeframeSelector = ({ value, onChange, excludeTimeframes = [] }: T
   );
 };
 
-export const DEFAULT_TIMEFRAMES = ["5m", "15m", "30m", "1h", "1d"];
+export const DEFAULT_TIMEFRAMES = ["1m", "5m", "15m", "1h", "1d"];
 export { ALL_TIMEFRAMES };

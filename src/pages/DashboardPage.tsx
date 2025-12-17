@@ -29,8 +29,9 @@ const generateAccuracyHistory = (): AccuracyResult[] => {
   return results;
 };
 
-// Initial mock data
+// Initial mock data - minimum 1 per category (US Stocks, Crypto, Forex)
 const initialData: SignalRowData[] = [
+  // US Stocks
   {
     id: "1",
     symbol: "AAPL",
@@ -44,6 +45,7 @@ const initialData: SignalRowData[] = [
     changePercent: 1.27,
     accuracyHistory: generateAccuracyHistory(),
   },
+  // Crypto
   {
     id: "2",
     symbol: "BTC/USD",
@@ -57,6 +59,7 @@ const initialData: SignalRowData[] = [
     changePercent: -2.02,
     accuracyHistory: generateAccuracyHistory(),
   },
+  // Forex
   {
     id: "3",
     symbol: "EUR/USD",
@@ -68,32 +71,6 @@ const initialData: SignalRowData[] = [
     lastPrice: 1.0892,
     change: 0.0023,
     changePercent: 0.21,
-    accuracyHistory: generateAccuracyHistory(),
-  },
-  {
-    id: "4",
-    symbol: "TSLA",
-    name: "Tesla Inc.",
-    category: "us_stocks",
-    indicator: "EMA",
-    indicatorParams: getDefaultParams("EMA"),
-    timeframes: generateTimeframeSignals(),
-    lastPrice: 248.50,
-    change: -5.30,
-    changePercent: -2.09,
-    accuracyHistory: generateAccuracyHistory(),
-  },
-  {
-    id: "5",
-    symbol: "ETH/USD",
-    name: "Ethereum",
-    category: "crypto",
-    indicator: "Stochastic",
-    indicatorParams: getDefaultParams("Stochastic"),
-    timeframes: generateTimeframeSignals(),
-    lastPrice: 2285.40,
-    change: 45.20,
-    changePercent: 2.02,
     accuracyHistory: generateAccuracyHistory(),
   },
 ];
