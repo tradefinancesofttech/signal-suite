@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ArrowLeft, Play, Download, TrendingUp, TrendingDown, Target, BarChart3, DollarSign, Percent } from "lucide-react";
+import { Calendar as CalendarIcon, ArrowLeft, Play, Download, TrendingUp, TrendingDown, Target, BarChart3, DollarSign, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from "recharts";
 
 interface BacktestResult {
   totalTrades: number;
@@ -26,6 +27,7 @@ interface BacktestResult {
   maxDrawdown: number;
   sharpeRatio: number;
   trades: TradeResult[];
+  equityCurve: { date: string; equity: number }[];
 }
 
 interface TradeResult {
@@ -41,10 +43,12 @@ interface TradeResult {
 
 const TIMEFRAMES = ["1m", "3m", "5m", "10m", "15m", "30m", "1hr", "2h", "3h", "4h", "1d"];
 
-const generateMockResults = (symbol: string, indicator: string): BacktestResult => {
+const generateMockResults = (symbol: string, indicator: string, initialCapital: number): BacktestResult => {
   const trades: TradeResult[] = [];
   const numTrades = Math.floor(Math.random() * 50) + 20;
   let basePrice = Math.random() * 1000 + 100;
+  let equity = initialCapital;
+  const equityCurve: { date: string; equity: number }[] = [{ date: "Start", equity: initialCapital }];
   
   for (let i = 0; i < numTrades; i++) {
     const entryDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
@@ -66,6 +70,8 @@ const generateMockResults = (symbol: string, indicator: string): BacktestResult 
       profitPercent: Number(((profit / entryPrice) * 100).toFixed(2)),
     });
     
+    equity += profit * 10; // Simplified position sizing
+    equityCurve.push({ date: `Trade ${i + 1}`, equity: Number(equity.toFixed(2)) });
     basePrice = exitPrice;
   }
   
@@ -86,6 +92,7 @@ const generateMockResults = (symbol: string, indicator: string): BacktestResult 
     maxDrawdown: Number((Math.random() * 15 + 5).toFixed(2)),
     sharpeRatio: Number((Math.random() * 2 + 0.5).toFixed(2)),
     trades,
+    equityCurve,
   };
 };
 
@@ -109,6 +116,16 @@ export default function BacktestPage() {
   const [selectedTimeframe, setSelectedTimeframe] = useState(state?.timeframes?.[0] || "1hr");
   const [results, setResults] = useState<BacktestResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [indicatorParams, setIndicatorParams] = useState<Record<string, number>>(state?.indicatorParams || {});
+
+  const profitDistribution = useMemo(() => {
+    if (!results) return [];
+    return results.trades.map(t => ({
+      id: t.id,
+      profit: t.profit,
+      type: t.type,
+    }));
+  }, [results]);
 
   if (!state) {
     return (
@@ -132,7 +149,7 @@ export default function BacktestPage() {
   const runBacktest = () => {
     setIsRunning(true);
     setTimeout(() => {
-      const mockResults = generateMockResults(state.symbol, state.indicator);
+      const mockResults = generateMockResults(state.symbol, state.indicator, Number(initialCapital));
       setResults(mockResults);
       setIsRunning(false);
       toast({
@@ -140,6 +157,13 @@ export default function BacktestPage() {
         description: `Analyzed ${mockResults.totalTrades} trades for ${state.symbol}`,
       });
     }, 1500);
+  };
+
+  const updateIndicatorParam = (key: string, value: string) => {
+    const numValue = Number(value);
+    if (!isNaN(numValue)) {
+      setIndicatorParams(prev => ({ ...prev, [key]: numValue }));
+    }
   };
 
   const exportResults = (exportFormat: "csv" | "pdf" | "txt") => {
@@ -246,13 +270,25 @@ export default function BacktestPage() {
                 <Label>Indicator</Label>
                 <Input value={state.indicator} disabled className="bg-secondary/50" />
               </div>
+              {/* Editable Indicator Parameters */}
               <div className="space-y-2">
-                <Label>Indicator Parameters</Label>
-                <Input 
-                  value={Object.entries(state.indicatorParams).map(([k, v]) => `${k}: ${v}`).join(", ")} 
-                  disabled 
-                  className="bg-secondary/50 text-xs" 
-                />
+                <Label className="flex items-center gap-2">
+                  <Settings2 className="h-4 w-4" />
+                  Indicator Parameters
+                </Label>
+                <div className="space-y-2 p-3 rounded-lg bg-secondary/30 border border-border/50">
+                  {Object.entries(indicatorParams).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between gap-2">
+                      <Label className="text-xs text-muted-foreground capitalize">{key}</Label>
+                      <Input
+                        type="number"
+                        value={value}
+                        onChange={(e) => updateIndicatorParam(key, e.target.value)}
+                        className="w-20 h-8 text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Timeframe */}
@@ -410,6 +446,91 @@ export default function BacktestPage() {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Equity Curve Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Equity Curve</CardTitle>
+                    <CardDescription>Portfolio value over time</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={results.equityCurve}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            tickLine={{ stroke: "hsl(var(--border))" }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            tickLine={{ stroke: "hsl(var(--border))" }}
+                            tickFormatter={(value) => `$${value.toLocaleString()}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: "hsl(var(--card))", 
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                              color: "hsl(var(--foreground))"
+                            }}
+                            formatter={(value: number) => [`$${value.toLocaleString()}`, "Equity"]}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="equity" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Profit Distribution Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Trade Profit/Loss Distribution</CardTitle>
+                    <CardDescription>Individual trade results</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={profitDistribution}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis 
+                            dataKey="id" 
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            tickLine={{ stroke: "hsl(var(--border))" }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            tickLine={{ stroke: "hsl(var(--border))" }}
+                            tickFormatter={(value) => `$${value}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: "hsl(var(--card))", 
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                              color: "hsl(var(--foreground))"
+                            }}
+                            formatter={(value: number) => [`$${value.toFixed(2)}`, "Profit/Loss"]}
+                          />
+                          <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" />
+                          <Bar 
+                            dataKey="profit" 
+                            fill="hsl(var(--primary))"
+                            radius={[2, 2, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Detailed Stats */}
                 <Card>
