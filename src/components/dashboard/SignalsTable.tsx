@@ -1,9 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SignalBadge, SignalType } from "./SignalBadge";
 import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
-import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download } from "lucide-react";
+import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -146,6 +147,8 @@ const downloadCSV = (symbol: string, timeframe: string) => {
 };
 
 export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTableProps) => {
+  const navigate = useNavigate();
+  
   const formatPrice = (price: number) => {
     if (price >= 1000) {
       return price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -365,8 +368,8 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                     Acc.
                   </div>
                 </th>
-                <th className="text-center px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">
-                  <Settings2 className="h-4 w-4 mx-auto" />
+                <th className="text-center px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -493,14 +496,39 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                             </div>
                           </td>
                           <td className="px-3 py-3 text-center">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteRow(row.id)}
-                              className="h-8 w-8 text-muted-foreground hover:text-sell hover:bg-sell/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-center gap-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => navigate("/backtest", {
+                                      state: {
+                                        symbol: row.symbol,
+                                        name: row.name,
+                                        indicator: row.indicator,
+                                        indicatorParams: row.indicatorParams,
+                                        timeframes: row.timeframes.map(t => t.timeframe),
+                                      }
+                                    })}
+                                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                  >
+                                    <FlaskConical className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Backtest {row.symbol}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteRow(row.id)}
+                                className="h-8 w-8 text-muted-foreground hover:text-sell hover:bg-sell/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
