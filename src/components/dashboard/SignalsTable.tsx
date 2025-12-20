@@ -4,8 +4,9 @@ import { SignalBadge, SignalType } from "./SignalBadge";
 import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
-import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download, FlaskConical, LineChart } from "lucide-react";
+import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -148,6 +149,7 @@ const downloadCSV = (symbol: string, timeframe: string) => {
 
 export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTableProps) => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
   
   const formatPrice = (price: number) => {
     if (price >= 1000) {
@@ -296,9 +298,17 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
     onDataChange(updatedData);
   };
 
+  // Filter data based on search query
+  const filteredData = searchQuery.trim()
+    ? data.filter((row) =>
+        row.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        row.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : data;
+
   // Group data by category
   const groupedData = CATEGORY_ORDER.reduce((acc, category) => {
-    acc[category] = data.filter((row) => row.category === category);
+    acc[category] = filteredData.filter((row) => row.category === category);
     return acc;
   }, {} as Record<string, SignalRowData[]>);
 
@@ -309,13 +319,37 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
       <div className="glass-card rounded-xl overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-border/50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-lg bg-primary/20 flex items-center justify-center">
               <Activity className="h-5 w-5 text-primary" />
             </div>
+            
+            {/* Search Box */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search ticker..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-[200px] pl-9 pr-8 h-9 bg-secondary/50 border-border/50"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 hover:bg-secondary"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            
             <div>
               <h2 className="font-semibold text-foreground">Trading Signals</h2>
-              <p className="text-xs text-muted-foreground">Multi-timeframe indicator analysis</p>
+              <p className="text-xs text-muted-foreground">
+                {searchQuery ? `Showing ${filteredData.length} of ${data.length} entries` : "Multi-timeframe indicator analysis"}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-4">

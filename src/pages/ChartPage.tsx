@@ -68,10 +68,10 @@ const ChartPage = () => {
   }, [symbol]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="px-6 py-4 flex items-center gap-4">
+      <header className="flex-shrink-0 border-b border-border/50 bg-card/50 backdrop-blur-sm">
+        <div className="px-6 py-3 flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -81,18 +81,18 @@ const ChartPage = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">{symbol}</h1>
-            <p className="text-sm text-muted-foreground">{name} - TradingView Chart</p>
+            <h1 className="text-lg font-bold text-foreground">{symbol}</h1>
+            <p className="text-xs text-muted-foreground">{name} - TradingView Chart</p>
           </div>
         </div>
       </header>
 
-      {/* Chart Container */}
-      <div className="flex-1 p-4">
+      {/* Chart Container - Full remaining height */}
+      <div className="flex-1 p-2">
         <div
           id="tradingview_chart"
           ref={containerRef}
-          className="w-full h-full min-h-[600px] rounded-lg overflow-hidden border border-border/50"
+          className="w-full h-full rounded-lg overflow-hidden border border-border/50"
         />
       </div>
     </div>
