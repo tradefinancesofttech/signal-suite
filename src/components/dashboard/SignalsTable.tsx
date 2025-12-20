@@ -4,9 +4,11 @@ import { SignalBadge, SignalType } from "./SignalBadge";
 import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
-import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X } from "lucide-react";
+import { TradeButton } from "./TradeButton";
+import { Activity, Clock, Layers, Plus, Trash2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -26,6 +28,7 @@ import {
 export interface TimeframeSignal {
   timeframe: string;
   signal: SignalType;
+  selected?: boolean;
 }
 
 export interface AccuracyResult {
@@ -45,6 +48,7 @@ export interface SignalRowData {
   change: number;
   changePercent: number;
   accuracyHistory: AccuracyResult[];
+  useProbabilityMode?: boolean;
 }
 
 interface SignalsTableProps {
@@ -87,6 +91,24 @@ const calculateProbability = (timeframes: TimeframeSignal[]): { signal: "buy" | 
     return { signal: "sell", strength: Math.round(sellStrength) };
   }
   return { signal: "neutral", strength: Math.round(Math.max(buyStrength, sellStrength)) };
+};
+
+const calculateSelectedSignal = (timeframes: TimeframeSignal[]): { signal: SignalType; selectedTimeframes: string[] } => {
+  const selected = timeframes.filter(tf => tf.selected);
+  if (selected.length === 0) {
+    return { signal: "neutral", selectedTimeframes: [] };
+  }
+  
+  let buyCount = 0;
+  let sellCount = 0;
+  
+  selected.forEach((tf) => {
+    if (tf.signal === "buy") buyCount++;
+    else if (tf.signal === "sell") sellCount++;
+  });
+  
+  const signal = buyCount > sellCount ? "buy" : sellCount > buyCount ? "sell" : "neutral";
+  return { signal, selectedTimeframes: selected.map(tf => tf.timeframe) };
 };
 
 const calculateAccuracy = (history: AccuracyResult[]): number => {
@@ -174,7 +196,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
   };
 
   const generateTimeframeSignals = (timeframes: string[] = DEFAULT_TIMEFRAMES): TimeframeSignal[] => {
-    return timeframes.map((tf) => ({ timeframe: tf, signal: getRandomSignal() }));
+    return timeframes.map((tf) => ({ timeframe: tf, signal: getRandomSignal(), selected: false }));
   };
 
   const addRow = () => {
@@ -216,6 +238,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
       change: selectedInstrument.change,
       changePercent: selectedInstrument.changePercent,
       accuracyHistory: generateAccuracyHistory(),
+      useProbabilityMode: false,
     };
 
     onDataChange([...data, newRow]);
@@ -291,10 +314,43 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
 
     const currentRow = data[rowIndex];
     const updatedTimeframes = [...currentRow.timeframes];
-    updatedTimeframes[tfIndex] = { timeframe: newTimeframe, signal: getRandomSignal() };
+    updatedTimeframes[tfIndex] = { ...updatedTimeframes[tfIndex], timeframe: newTimeframe, signal: getRandomSignal() };
 
     const updatedData = [...data];
     updatedData[rowIndex] = { ...currentRow, timeframes: updatedTimeframes };
+    onDataChange(updatedData);
+  };
+
+  const toggleTimeframeSelection = (id: string, tfIndex: number) => {
+    const rowIndex = data.findIndex((r) => r.id === id);
+    if (rowIndex === -1) return;
+
+    const currentRow = data[rowIndex];
+    if (currentRow.useProbabilityMode) return; // Don't allow timeframe selection in probability mode
+
+    const updatedTimeframes = [...currentRow.timeframes];
+    updatedTimeframes[tfIndex] = { ...updatedTimeframes[tfIndex], selected: !updatedTimeframes[tfIndex].selected };
+
+    const updatedData = [...data];
+    updatedData[rowIndex] = { ...currentRow, timeframes: updatedTimeframes };
+    onDataChange(updatedData);
+  };
+
+  const toggleProbabilityMode = (id: string) => {
+    const rowIndex = data.findIndex((r) => r.id === id);
+    if (rowIndex === -1) return;
+
+    const currentRow = data[rowIndex];
+    const newMode = !currentRow.useProbabilityMode;
+    
+    // Clear timeframe selections when switching to probability mode
+    const updatedTimeframes = currentRow.timeframes.map(tf => ({
+      ...tf,
+      selected: newMode ? false : tf.selected
+    }));
+
+    const updatedData = [...data];
+    updatedData[rowIndex] = { ...currentRow, useProbabilityMode: newMode, timeframes: updatedTimeframes };
     onDataChange(updatedData);
   };
 
@@ -389,7 +445,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                   Parameters
                 </th>
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <th key={i} className="text-center px-2 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[90px]">
+                  <th key={i} className="text-center px-2 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[100px]">
                     TF {i + 1}
                   </th>
                 ))}
@@ -405,6 +461,9 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                     Acc.
                   </div>
                 </th>
+                <th className="text-center px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[80px]">
+                  Trade
+                </th>
                 <th className="text-center px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">
                   Actions
                 </th>
@@ -419,7 +478,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                   <React.Fragment key={category}>
                     {/* Category Header */}
                     <tr className="bg-secondary/40">
-                      <td colSpan={13} className="px-4 py-2">
+                      <td colSpan={14} className="px-4 py-2">
                         <span className="text-xs font-semibold text-primary uppercase tracking-wider">
                           {CATEGORY_LABELS[category]}
                         </span>
@@ -433,6 +492,8 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                       globalIndex++;
                       const probability = calculateProbability(row.timeframes);
                       const accuracy = calculateAccuracy(row.accuracyHistory);
+                      const selectedInfo = calculateSelectedSignal(row.timeframes);
+                      const useProbabilityMode = row.useProbabilityMode ?? false;
                       
                       return (
                         <tr
@@ -505,6 +566,24 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                             <td key={tfIndex} className="px-2 py-3 text-center">
                               <div className="flex flex-col items-center gap-1">
                                 <div className="flex items-center gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className={cn(
+                                        "flex items-center justify-center h-5 w-5",
+                                        useProbabilityMode && "opacity-40 cursor-not-allowed"
+                                      )}>
+                                        <Checkbox
+                                          checked={tf.selected ?? false}
+                                          onCheckedChange={() => toggleTimeframeSelection(row.id, tfIndex)}
+                                          disabled={useProbabilityMode}
+                                          className="h-4 w-4 border-border/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                        />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{useProbabilityMode ? "Disable probability mode to select timeframes" : "Select for trading"}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
                                   <TimeframeSelector
                                     value={tf.timeframe}
                                     onChange={(newTf) => updateTimeframe(row.id, tfIndex, newTf)}
@@ -530,11 +609,27 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                           ))}
                           <td className="px-3 py-3 text-center">
                             <div className="flex flex-col items-center gap-1">
-                              <SignalBadge 
-                                signal={probability.signal} 
-                                showIcon 
-                                className="text-xs px-2 py-1"
-                              />
+                              <div className="flex items-center gap-1">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center justify-center h-5 w-5">
+                                      <Checkbox
+                                        checked={useProbabilityMode}
+                                        onCheckedChange={() => toggleProbabilityMode(row.id)}
+                                        className="h-4 w-4 border-border/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                      />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Use probability-based trading</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <SignalBadge 
+                                  signal={probability.signal} 
+                                  showIcon 
+                                  className="text-xs px-2 py-1"
+                                />
+                              </div>
                               <span className="text-[10px] text-muted-foreground font-mono">
                                 {probability.strength}%
                               </span>
@@ -553,6 +648,15 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                             <div className="text-[9px] text-muted-foreground mt-0.5">
                               Last {row.accuracyHistory.length}
                             </div>
+                          </td>
+                          <td className="px-3 py-3 text-center">
+                            <TradeButton
+                              symbol={row.symbol}
+                              signal={useProbabilityMode ? probability.signal : selectedInfo.signal}
+                              probability={probability.strength}
+                              selectedTimeframes={selectedInfo.selectedTimeframes}
+                              useProbabilityMode={useProbabilityMode}
+                            />
                           </td>
                           <td className="px-3 py-3 text-center">
                             <div className="flex items-center justify-center gap-1">
@@ -597,7 +701,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
               })}
               {data.length === 0 && (
                 <tr>
-                  <td colSpan={13} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={14} className="px-6 py-12 text-center text-muted-foreground">
                     No entries yet. Click "Add Row" to create your first signal configuration.
                   </td>
                 </tr>
