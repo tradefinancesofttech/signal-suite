@@ -1,6 +1,7 @@
-import { Activity, LogOut, Settings, Shield, User } from "lucide-react";
+import { Activity, LogOut, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { TradingAccountSettings } from "./TradingAccountSettings";
 import { useNavigate } from "react-router-dom";
 
 interface DashboardHeaderProps {
@@ -43,9 +44,7 @@ export const DashboardHeader = ({ licenseKey = "XXXX-XXXX-XXXX", macAddress = "X
         {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="ghost" size="icon">
-            <Settings className="h-4 w-4" />
-          </Button>
+          <TradingAccountSettings />
           <Button variant="ghost" size="icon">
             <User className="h-4 w-4" />
           </Button>
