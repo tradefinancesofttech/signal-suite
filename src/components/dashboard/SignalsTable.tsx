@@ -4,7 +4,7 @@ import { SignalBadge, SignalType } from "./SignalBadge";
 import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
-import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download, FlaskConical } from "lucide-react";
+import { Activity, Clock, Layers, Plus, Trash2, Settings2, TrendingUp, Target, Download, FlaskConical, LineChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -345,6 +345,9 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                 <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[180px]">
                   Instrument
                 </th>
+                <th className="text-center px-2 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">
+                  Chart
+                </th>
                 <th className="text-left px-3 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[110px]">
                   Indicator
                 </th>
@@ -382,7 +385,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                   <React.Fragment key={category}>
                     {/* Category Header */}
                     <tr className="bg-secondary/40">
-                      <td colSpan={12} className="px-4 py-2">
+                      <td colSpan={13} className="px-4 py-2">
                         <span className="text-xs font-semibold text-primary uppercase tracking-wider">
                           {CATEGORY_LABELS[category]}
                         </span>
@@ -417,6 +420,28 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                                 {formatChange(row.change, row.changePercent)}
                               </div>
                             </div>
+                          </td>
+                          <td className="px-2 py-3 text-center">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => navigate("/chart", {
+                                    state: {
+                                      symbol: row.symbol,
+                                      name: row.name,
+                                    }
+                                  })}
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                >
+                                  <LineChart className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>View {row.symbol} Chart</p>
+                              </TooltipContent>
+                            </Tooltip>
                           </td>
                           <td className="px-3 py-3">
                             <Select
@@ -538,7 +563,7 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
               })}
               {data.length === 0 && (
                 <tr>
-                  <td colSpan={12} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={13} className="px-6 py-12 text-center text-muted-foreground">
                     No entries yet. Click "Add Row" to create your first signal configuration.
                   </td>
                 </tr>

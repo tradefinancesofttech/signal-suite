@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SignalsTable, SignalRowData, TimeframeSignal, AccuracyResult } from "@/components/dashboard/SignalsTable";
 import { StatsCard, SignalsSummary } from "@/components/dashboard/StatsCard";
@@ -7,6 +7,8 @@ import { SignalType } from "@/components/dashboard/SignalBadge";
 import { instruments } from "@/data/instruments";
 import { DEFAULT_TIMEFRAMES } from "@/components/dashboard/TimeframeSelector";
 import { getDefaultParams } from "@/components/dashboard/IndicatorParams";
+
+const STORAGE_KEY = "dashboard_table_data";
 
 // Generate random signal
 const getRandomSignal = (): SignalType => {
@@ -75,8 +77,30 @@ const initialData: SignalRowData[] = [
   },
 ];
 
+// Load data from localStorage or use initial data
+const loadStoredData = (): SignalRowData[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error("Failed to load stored data:", e);
+  }
+  return initialData;
+};
+
 const DashboardPage = () => {
-  const [tableData, setTableData] = useState<SignalRowData[]>(initialData);
+  const [tableData, setTableData] = useState<SignalRowData[]>(() => loadStoredData());
+
+  // Persist to localStorage whenever data changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tableData));
+    } catch (e) {
+      console.error("Failed to save data:", e);
+    }
+  }, [tableData]);
 
   // Calculate signal counts from all timeframes
   const signalCounts = tableData.reduce(
