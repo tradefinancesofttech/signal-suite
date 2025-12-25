@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { FloatingPortfolio } from "@/components/dashboard/FloatingPortfolio";
 
 declare global {
   interface Window {
@@ -95,6 +96,9 @@ const ChartPage = () => {
           className="w-full h-full rounded-lg overflow-hidden border border-border/50"
         />
       </div>
+
+      {/* Floating Portfolio Widget */}
+      <FloatingPortfolio />
     </div>
   );
 };
