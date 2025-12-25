@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from "recharts";
+import { FloatingPortfolio } from "@/components/dashboard/FloatingPortfolio";
 
 interface BacktestResult {
   totalTrades: number;
@@ -630,6 +631,9 @@ export default function BacktestPage() {
           </div>
         </div>
       </main>
+
+      {/* Floating Portfolio Widget */}
+      <FloatingPortfolio />
     </div>
   );
 }
