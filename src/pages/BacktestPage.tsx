@@ -15,6 +15,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from "recharts";
 import { FloatingPortfolio } from "@/components/dashboard/FloatingPortfolio";
+import { TemplateManager } from "@/components/dashboard/TemplateManager";
+import { BacktestTemplate } from "@/lib/templateService";
 
 interface BacktestResult {
   totalTrades: number;
@@ -367,6 +369,38 @@ export default function BacktestPage() {
                   <Label>Take Profit (%)</Label>
                   <Input type="number" value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} />
                 </div>
+              </div>
+
+              {/* Template Manager */}
+              <div className="pt-4 border-t border-border/50">
+                <Label className="text-sm mb-2 block">Templates</Label>
+                <TemplateManager
+                  currentConfig={{
+                    symbol: state.symbol,
+                    symbolName: state.name,
+                    indicator: state.indicator,
+                    indicatorParams,
+                    timeframes: state.timeframes || [selectedTimeframe],
+                    initialCapital,
+                    positionSize,
+                    stopLoss,
+                    takeProfit,
+                  }}
+                  onLoadTemplate={(template: BacktestTemplate) => {
+                    setIndicatorParams(template.indicatorParams);
+                    setSelectedTimeframe(template.timeframes[0] || "1hr");
+                    setInitialCapital(template.initialCapital);
+                    setPositionSize(template.positionSize);
+                    setStopLoss(template.stopLoss);
+                    setTakeProfit(template.takeProfit);
+                  }}
+                  lastResults={results ? {
+                    winRate: results.winRate,
+                    netProfit: results.netProfit,
+                    profitFactor: results.profitFactor,
+                    totalTrades: results.totalTrades,
+                  } : undefined}
+                />
               </div>
 
               {/* Actions */}

@@ -1,7 +1,8 @@
-import { Activity, LogOut, Shield, User } from "lucide-react";
+import { Activity, LogOut, Shield, User, History, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TradingAccountSettings } from "./TradingAccountSettings";
+import { PnLAlertSettings } from "./PnLAlertSettings";
 import { useNavigate } from "react-router-dom";
 
 interface DashboardHeaderProps {
@@ -43,6 +44,15 @@ export const DashboardHeader = ({ licenseKey = "XXXX-XXXX-XXXX", macAddress = "X
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <PnLAlertSettings />
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/trade-history")}>
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">History</span>
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/subscription")}>
+            <CreditCard className="h-4 w-4" />
+            <span className="hidden sm:inline">Plans</span>
+          </Button>
           <ThemeToggle />
           <TradingAccountSettings />
           <Button variant="ghost" size="icon">
