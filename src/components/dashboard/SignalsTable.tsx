@@ -5,6 +5,8 @@ import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
 import { TradeButton } from "./TradeButton";
+import { LoadTemplateButton } from "./LoadTemplateButton";
+import { CopyTrading } from "./CopyTrading";
 import { Activity, Clock, Layers, Plus, Trash2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +26,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { BacktestTemplate } from "@/lib/templateService";
 
 export interface TimeframeSignal {
   timeframe: string;
@@ -354,6 +357,51 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
     onDataChange(updatedData);
   };
 
+  // Load template into a new row
+  const loadTemplateAsRow = (template: BacktestTemplate) => {
+    // Find the instrument
+    const instrument = instruments.find(i => i.symbol === template.symbol);
+    if (!instrument) {
+      toast({
+        title: "Instrument Not Found",
+        description: `${template.symbol} is not available in the instrument list.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicates
+    if (isDuplicate(template.symbol, template.indicator)) {
+      toast({
+        title: "Duplicate Entry",
+        description: `${template.symbol} + ${template.indicator} combination already exists.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newRow: SignalRowData = {
+      id: Date.now().toString(),
+      symbol: template.symbol,
+      name: template.symbolName,
+      category: instrument.category,
+      indicator: template.indicator,
+      indicatorParams: template.indicatorParams,
+      timeframes: template.timeframes.map((tf) => ({ 
+        timeframe: tf, 
+        signal: getRandomSignal(), 
+        selected: false 
+      })),
+      lastPrice: instrument.price,
+      change: instrument.change,
+      changePercent: instrument.changePercent,
+      accuracyHistory: generateAccuracyHistory(),
+      useProbabilityMode: false,
+    };
+
+    onDataChange([...data, newRow]);
+  };
+
   // Filter data based on search query
   const filteredData = searchQuery.trim()
     ? data.filter((row) =>
@@ -409,6 +457,8 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <CopyTrading />
+            <LoadTemplateButton onLoadTemplate={loadTemplateAsRow} />
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>Live</span>
