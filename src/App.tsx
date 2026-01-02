@@ -9,6 +9,7 @@ import BacktestPage from "./pages/BacktestPage";
 import ChartPage from "./pages/ChartPage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import TradeHistoryPage from "./pages/TradeHistoryPage";
+import CopyTradingPage from "./pages/CopyTradingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/chart" element={<ChartPage />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/trade-history" element={<TradeHistoryPage />} />
+          <Route path="/copy-trading" element={<CopyTradingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

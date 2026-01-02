@@ -1,20 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SignalBadge, SignalType } from "./SignalBadge";
 import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
 import { TradeButton } from "./TradeButton";
-import { LoadTemplateButton } from "./LoadTemplateButton";
-import { CopyTrading } from "./CopyTrading";
-import { Activity, Clock, Layers, Plus, Trash2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X } from "lucide-react";
+import { Activity, Clock, Layers, Plus, Trash2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X, Copy, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -26,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { BacktestTemplate } from "@/lib/templateService";
+import { BacktestTemplate, getTemplates } from "@/lib/templateService";
 
 export interface TimeframeSignal {
   timeframe: string;
@@ -52,6 +53,7 @@ export interface SignalRowData {
   changePercent: number;
   accuracyHistory: AccuracyResult[];
   useProbabilityMode?: boolean;
+  loadedTemplateTimeframes?: string[]; // Track which timeframes came from template
 }
 
 interface SignalsTableProps {
@@ -175,6 +177,19 @@ const downloadCSV = (symbol: string, timeframe: string) => {
 export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTableProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [templates, setTemplates] = useState<BacktestTemplate[]>(getTemplates());
+
+  // Listen for template updates
+  useEffect(() => {
+    const handleTemplatesUpdate = (e: CustomEvent<BacktestTemplate[]>) => {
+      setTemplates(e.detail);
+    };
+    
+    window.addEventListener("templatesUpdated", handleTemplatesUpdate as EventListener);
+    return () => {
+      window.removeEventListener("templatesUpdated", handleTemplatesUpdate as EventListener);
+    };
+  }, []);
   
   const formatPrice = (price: number) => {
     if (price >= 1000) {
@@ -298,8 +313,78 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
       indicator,
       indicatorParams: getDefaultParams(indicator),
       timeframes: generateTimeframeSignals(currentRow.timeframes.map((t) => t.timeframe)),
+      loadedTemplateTimeframes: undefined, // Clear template highlighting when changing indicator
     };
     onDataChange(updatedData);
+  };
+
+  // Apply a template to an existing row
+  const applyTemplateToRow = (id: string, template: BacktestTemplate) => {
+    const rowIndex = data.findIndex((r) => r.id === id);
+    if (rowIndex === -1) return;
+
+    const currentRow = data[rowIndex];
+    
+    // Build the new timeframes array using the first timeframe from template as the first column
+    const newTimeframes: TimeframeSignal[] = [];
+    const templateTfSet = new Set(template.timeframes);
+    
+    // First add the template's first timeframe to the first column
+    if (template.timeframes.length > 0) {
+      newTimeframes.push({
+        timeframe: template.timeframes[0],
+        signal: getRandomSignal(),
+        selected: false,
+      });
+    }
+    
+    // Then fill remaining columns with other template timeframes or existing ones
+    const usedTimeframes = new Set([template.timeframes[0]]);
+    for (let i = 1; i < 5; i++) {
+      if (template.timeframes[i] && !usedTimeframes.has(template.timeframes[i])) {
+        newTimeframes.push({
+          timeframe: template.timeframes[i],
+          signal: getRandomSignal(),
+          selected: false,
+        });
+        usedTimeframes.add(template.timeframes[i]);
+      } else {
+        // Use existing timeframe if not in template
+        const existingTf = currentRow.timeframes[i]?.timeframe || DEFAULT_TIMEFRAMES[i];
+        if (!usedTimeframes.has(existingTf)) {
+          newTimeframes.push({
+            timeframe: existingTf,
+            signal: getRandomSignal(),
+            selected: false,
+          });
+          usedTimeframes.add(existingTf);
+        } else {
+          // Find a timeframe not yet used
+          const availableTf = DEFAULT_TIMEFRAMES.find(tf => !usedTimeframes.has(tf)) || "1m";
+          newTimeframes.push({
+            timeframe: availableTf,
+            signal: getRandomSignal(),
+            selected: false,
+          });
+          usedTimeframes.add(availableTf);
+        }
+      }
+    }
+
+    const updatedData = [...data];
+    updatedData[rowIndex] = {
+      ...currentRow,
+      indicator: template.indicator,
+      indicatorParams: template.indicatorParams,
+      timeframes: newTimeframes,
+      loadedTemplateTimeframes: template.timeframes, // Track which timeframes came from template
+    };
+    onDataChange(updatedData);
+
+    toast({
+      title: "Template Applied",
+      description: `"${template.name}" loaded with ${template.indicator} indicator.`,
+    });
   };
 
   const updateIndicatorParams = (id: string, params: IndicatorParamsData) => {
@@ -457,8 +542,15 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <CopyTrading />
-            <LoadTemplateButton onLoadTemplate={loadTemplateAsRow} />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => navigate("/copy-trading")}
+            >
+              <Copy className="h-4 w-4" />
+              Copy Trading
+            </Button>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>Live</span>
@@ -591,17 +683,56 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                           <td className="px-3 py-3">
                             <Select
                               value={row.indicator}
-                              onValueChange={(value) => updateIndicator(row.id, value)}
+                              onValueChange={(value) => {
+                                // Check if it's a template
+                                if (value.startsWith("template_")) {
+                                  const templateId = value;
+                                  const template = templates.find(t => t.id === templateId);
+                                  if (template) {
+                                    applyTemplateToRow(row.id, template);
+                                  }
+                                } else {
+                                  updateIndicator(row.id, value);
+                                }
+                              }}
                             >
-                              <SelectTrigger className="w-[100px] bg-secondary/50 border-border/50">
+                              <SelectTrigger className="w-[120px] bg-secondary/50 border-border/50">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-card border-border z-50">
-                                {INDICATORS.map((ind) => (
-                                  <SelectItem key={ind} value={ind}>
-                                    {ind}
-                                  </SelectItem>
-                                ))}
+                              <SelectContent className="bg-card border-border z-50 max-h-[300px]">
+                                <SelectGroup>
+                                  <SelectLabel className="text-xs text-muted-foreground">Indicators</SelectLabel>
+                                  {INDICATORS.map((ind) => (
+                                    <SelectItem key={ind} value={ind}>
+                                      {ind}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                                {templates.length > 0 && (
+                                  <>
+                                    <Separator className="my-1" />
+                                    <SelectGroup>
+                                      <SelectLabel className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <FileDown className="h-3 w-3" />
+                                        Templates
+                                      </SelectLabel>
+                                      {templates.map((template) => (
+                                        <SelectItem 
+                                          key={template.id} 
+                                          value={template.id}
+                                          className="text-xs"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-medium">{template.name}</span>
+                                            <span className="text-muted-foreground text-[10px]">
+                                              ({template.indicator})
+                                            </span>
+                                          </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectGroup>
+                                  </>
+                                )}
                               </SelectContent>
                             </Select>
                           </td>
@@ -612,8 +743,13 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                               onChange={(params) => updateIndicatorParams(row.id, params)}
                             />
                           </td>
-                          {row.timeframes.map((tf, tfIndex) => (
-                            <td key={tfIndex} className="px-2 py-3 text-center">
+                          {row.timeframes.map((tf, tfIndex) => {
+                            const isTemplateTimeframe = row.loadedTemplateTimeframes?.includes(tf.timeframe);
+                            return (
+                            <td key={tfIndex} className={cn(
+                              "px-2 py-3 text-center",
+                              isTemplateTimeframe && "bg-primary/10 border-x border-primary/20"
+                            )}>
                               <div className="flex flex-col items-center gap-1">
                                 <div className="flex items-center gap-1">
                                   <Tooltip>
@@ -656,7 +792,8 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                                 <SignalBadge signal={tf.signal} showIcon={false} className="text-[10px] px-2 py-0.5" />
                               </div>
                             </td>
-                          ))}
+                          );
+                          })}
                           <td className="px-3 py-3 text-center">
                             <div className="flex flex-col items-center gap-1">
                               <div className="flex items-center gap-1">
