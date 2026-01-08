@@ -5,7 +5,7 @@ import { InstrumentSearch, Instrument } from "./InstrumentSearch";
 import { TimeframeSelector, DEFAULT_TIMEFRAMES } from "./TimeframeSelector";
 import { IndicatorParams, IndicatorParamsData, getDefaultParams } from "./IndicatorParams";
 import { TradeButton } from "./TradeButton";
-import { Activity, Clock, Layers, Plus, Trash2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X, Copy, FileDown } from "lucide-react";
+import { Activity, Clock, Layers, Plus, Trash2, TrendingUp, Target, Download, FlaskConical, LineChart, Search, X, Copy, FileDown, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -178,6 +178,8 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [templates, setTemplates] = useState<BacktestTemplate[]>(getTemplates());
+  const [showIndicators, setShowIndicators] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(true);
 
   // Listen for template updates
   useEffect(() => {
@@ -699,38 +701,73 @@ export const SignalsTable = ({ data, onDataChange, instruments }: SignalsTablePr
                               <SelectTrigger className="w-[120px] bg-secondary/50 border-border/50">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-card border-border z-50 max-h-[300px]">
-                                <SelectGroup>
-                                  <SelectLabel className="text-xs text-muted-foreground">Indicators</SelectLabel>
-                                  {INDICATORS.map((ind) => (
-                                    <SelectItem key={ind} value={ind}>
-                                      {ind}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
+                              <SelectContent className="bg-card border-border z-50 max-h-[350px]">
+                                {/* Indicators Section */}
+                                <div 
+                                  className="flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-secondary/50 rounded-sm"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setShowIndicators(!showIndicators);
+                                  }}
+                                >
+                                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Indicators</span>
+                                  {showIndicators ? (
+                                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                  )}
+                                </div>
+                                {showIndicators && (
+                                  <SelectGroup>
+                                    {INDICATORS.map((ind) => (
+                                      <SelectItem key={ind} value={ind}>
+                                        {ind}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                                )}
+                                
+                                {/* Templates Section */}
                                 {templates.length > 0 && (
                                   <>
                                     <Separator className="my-1" />
-                                    <SelectGroup>
-                                      <SelectLabel className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <div 
+                                      className="flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-secondary/50 rounded-sm"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setShowTemplates(!showTemplates);
+                                      }}
+                                    >
+                                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                                         <FileDown className="h-3 w-3" />
                                         Templates
-                                      </SelectLabel>
-                                      {templates.map((template) => (
-                                        <SelectItem 
-                                          key={template.id} 
-                                          value={template.id}
-                                          className="text-xs"
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <span className="font-medium">{template.name}</span>
-                                            <span className="text-muted-foreground text-[10px]">
-                                              ({template.indicator})
-                                            </span>
-                                          </div>
-                                        </SelectItem>
-                                      ))}
-                                    </SelectGroup>
+                                      </span>
+                                      {showTemplates ? (
+                                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                      ) : (
+                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                    {showTemplates && (
+                                      <SelectGroup>
+                                        {templates.map((template) => (
+                                          <SelectItem 
+                                            key={template.id} 
+                                            value={template.id}
+                                            className="text-xs"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <span className="font-medium">{template.name}</span>
+                                              <span className="text-muted-foreground text-[10px]">
+                                                ({template.indicator})
+                                              </span>
+                                            </div>
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    )}
                                   </>
                                 )}
                               </SelectContent>
